@@ -1,6 +1,7 @@
 package ru.cs.vsu.khabarov.demo.controller;
 
 import ru.cs.vsu.khabarov.demo.dto.BookDto;
+import ru.cs.vsu.khabarov.demo.kafka.BookProducer;
 import ru.cs.vsu.khabarov.demo.model.Book;
 import ru.cs.vsu.khabarov.demo.repository.BookRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,9 @@ public class BookController {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private BookProducer bookProducer;
+
     @PostMapping
     @Operation(summary = "Добавить книгу")
     public ResponseEntity<Book> create(@Valid @RequestBody BookDto dto) {
@@ -32,7 +36,9 @@ public class BookController {
         book.setPrice(dto.getPrice());
         book.setCategoryId(dto.getCategoryId());
         book.setStackId(dto.getStackId());
-        return new ResponseEntity<>(bookRepository.save(book), HttpStatus.CREATED);
+        Book saved = bookRepository.save(book);
+        bookProducer.sendCreated(saved);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     @GetMapping
@@ -79,7 +85,9 @@ public class BookController {
         book.setCategoryId(dto.getCategoryId());
         book.setStackId(dto.getStackId());
         book.updateTimestamp();
-        return ResponseEntity.ok(bookRepository.save(book));
+        Book saved = bookRepository.save(book);
+        bookProducer.sendUpdated(saved);
+        return ResponseEntity.ok(saved);
     }
 
     @DeleteMapping("/{id}")
@@ -87,6 +95,7 @@ public class BookController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!bookRepository.existsById(id)) return ResponseEntity.notFound().build();
         bookRepository.deleteById(id);
+        bookProducer.sendDeleted(id);
         return ResponseEntity.noContent().build();
     }
 
