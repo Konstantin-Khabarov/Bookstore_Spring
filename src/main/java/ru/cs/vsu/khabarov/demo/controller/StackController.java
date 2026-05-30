@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/stacks")
-@Tag(name = "Stacks", description = "Управление стеллажами и гео-поиск")
+@Tag(name = "Stacks", description = "Управление стеллажами и поиск по расположению")
 public class StackController {
 
     @Autowired
@@ -25,7 +25,8 @@ public class StackController {
     @Operation(summary = "Создать стеллаж")
     public ResponseEntity<Stack> create(@Valid @RequestBody StackDto dto) {
         Stack stack = new Stack();
-        stack.setLocation(dto.getLocation());
+        stack.setX(dto.getX());
+        stack.setY(dto.getY());
         stack.setShelfNumber(dto.getShelfNumber());
         stack.setDescription(dto.getDescription());
         return new ResponseEntity<>(stackRepository.save(stack), HttpStatus.CREATED);
@@ -39,13 +40,13 @@ public class StackController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить стеллаж по ID")
-    public ResponseEntity<Stack> getById(@PathVariable String id) {
+    public ResponseEntity<Stack> getById(@PathVariable Long id) {
         Optional<Stack> stack = stackRepository.findById(id);
         return stack.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/near")
-    @Operation(summary = "Поиск стеллажей рядом с координатами")
+    @Operation(summary = "Поиск стеллажей рядом с координатами (x, y)")
     public List<Stack> findNear(@RequestParam double x, @RequestParam double y,
                                 @RequestParam(defaultValue = "100") double maxDistance) {
         return stackRepository.findStacksNear(x, y, maxDistance);
@@ -53,11 +54,12 @@ public class StackController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить стеллаж")
-    public ResponseEntity<Stack> update(@PathVariable String id, @Valid @RequestBody StackDto dto) {
+    public ResponseEntity<Stack> update(@PathVariable Long id, @Valid @RequestBody StackDto dto) {
         Optional<Stack> existing = stackRepository.findById(id);
         if (existing.isEmpty()) return ResponseEntity.notFound().build();
         Stack stack = existing.get();
-        stack.setLocation(dto.getLocation());
+        stack.setX(dto.getX());
+        stack.setY(dto.getY());
         stack.setShelfNumber(dto.getShelfNumber());
         stack.setDescription(dto.getDescription());
         stack.updateTimestamp();
@@ -66,7 +68,7 @@ public class StackController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить стеллаж")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!stackRepository.existsById(id)) return ResponseEntity.notFound().build();
         stackRepository.deleteById(id);
         return ResponseEntity.noContent().build();

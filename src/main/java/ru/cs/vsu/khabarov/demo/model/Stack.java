@@ -1,19 +1,25 @@
 package ru.cs.vsu.khabarov.demo.model;
 
+import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
-import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Data
-@Document(collection = "stacks")
+@Entity
+@Table(name = "stack", indexes = {
+    @Index(name = "idx_stack_location", columnList = "x, y")
+})
 public class Stack {
     @Id
-    private String id;
-    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2D)
-    private double[] location; // [x, y]
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private Double x;
+
+    @Column(nullable = false)
+    private Double y;
+
     private String shelfNumber;
     private String description;
     private LocalDateTime createdAt;

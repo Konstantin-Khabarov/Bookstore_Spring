@@ -1,21 +1,29 @@
 package ru.cs.vsu.khabarov.demo.model;
 
+import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Data
-@Document(collection = "books")
+@Entity
+@Table(name = "book")
 public class Book {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
     private String title;
+
+    @Column(nullable = false)
     private String author;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
     private Double price;
-    private String categoryId;
-    private String stackId;
+    private Long categoryId;
+    private Long stackId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

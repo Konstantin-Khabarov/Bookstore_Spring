@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -42,7 +43,7 @@ public class BookController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить книгу по ID")
-    public ResponseEntity<Book> getById(@PathVariable String id) {
+    public ResponseEntity<Book> getById(@PathVariable Long id) {
         Optional<Book> book = bookRepository.findById(id);
         return book.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -61,13 +62,13 @@ public class BookController {
 
     @GetMapping("/category/{categoryId}")
     @Operation(summary = "Книги по категории")
-    public List<Book> findByCategory(@PathVariable String categoryId) {
+    public List<Book> findByCategory(@PathVariable Long categoryId) {
         return bookRepository.findByCategoryId(categoryId);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить книгу")
-    public ResponseEntity<Book> update(@PathVariable String id, @Valid @RequestBody BookDto dto) {
+    public ResponseEntity<Book> update(@PathVariable Long id, @Valid @RequestBody BookDto dto) {
         Optional<Book> existing = bookRepository.findById(id);
         if (existing.isEmpty()) return ResponseEntity.notFound().build();
         Book book = existing.get();
@@ -83,9 +84,26 @@ public class BookController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить книгу")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!bookRepository.existsById(id)) return ResponseEntity.notFound().build();
         bookRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/bulk")
+    @Operation(summary = "Массовая вставка книг (до 1000 за запрос)")
+    public ResponseEntity<Map<String, Integer>> createBulk(@RequestBody List<BookDto> dtos) {
+        List<Book> books = dtos.stream().map(dto -> {
+            Book book = new Book();
+            book.setTitle(dto.getTitle());
+            book.setAuthor(dto.getAuthor());
+            book.setDescription(dto.getDescription());
+            book.setPrice(dto.getPrice());
+            book.setCategoryId(dto.getCategoryId());
+            book.setStackId(dto.getStackId());
+            return book;
+        }).toList();
+        bookRepository.saveAll(books);
+        return ResponseEntity.ok(Map.of("inserted", books.size()));
     }
 }

@@ -7,8 +7,13 @@ import lombok.Data;
 @Data
 public class StackDto {
     @NotNull
-    private double[] location; // [x, y]
+    private Double x;
+
+    @NotNull
+    private Double y;
+
     @NotBlank
     private String shelfNumber;
+
     private String description;
 }

@@ -1,16 +1,22 @@
 package ru.cs.vsu.khabarov.demo.model;
 
+import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Data
-@Document(collection = "categories")
+@Entity
+@Table(name = "category", indexes = {
+    @Index(name = "idx_category_name", columnList = "name", unique = true)
+})
 public class Category {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
     private String name;
+
     private String description;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

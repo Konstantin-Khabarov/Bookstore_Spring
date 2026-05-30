@@ -17,6 +17,7 @@ import java.util.Optional;
 @RequestMapping("/api/categories")
 @Tag(name = "Categories", description = "Управление категориями")
 public class CategoryController {
+
     @Autowired
     private CategoryRepository categoryRepository;
 
@@ -37,14 +38,14 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить категорию по ID")
-    public ResponseEntity<Category> getById(@PathVariable String id) {
+    public ResponseEntity<Category> getById(@PathVariable Long id) {
         Optional<Category> category = categoryRepository.findById(id);
         return category.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Обновить категорию")
-    public ResponseEntity<Category> update(@PathVariable String id, @Valid @RequestBody CategoryDto dto) {
+    public ResponseEntity<Category> update(@PathVariable Long id, @Valid @RequestBody CategoryDto dto) {
         Optional<Category> existing = categoryRepository.findById(id);
         if (existing.isEmpty()) return ResponseEntity.notFound().build();
         Category category = existing.get();
@@ -56,7 +57,7 @@ public class CategoryController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить категорию")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!categoryRepository.existsById(id)) return ResponseEntity.notFound().build();
         categoryRepository.deleteById(id);
         return ResponseEntity.noContent().build();

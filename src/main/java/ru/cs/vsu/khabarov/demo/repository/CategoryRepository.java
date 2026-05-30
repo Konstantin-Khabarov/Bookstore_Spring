@@ -1,9 +1,7 @@
 package ru.cs.vsu.khabarov.demo.repository;
 
 import ru.cs.vsu.khabarov.demo.model.Category;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CategoryRepository extends MongoRepository<Category, String> {
-    Optional<Category> findByName(String name);
+public interface CategoryRepository extends JpaRepository<Category, Long> {
 }
