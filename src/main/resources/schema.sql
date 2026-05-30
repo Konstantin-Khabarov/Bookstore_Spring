@@ -7,3 +7,6 @@ CREATE INDEX IF NOT EXISTS idx_book_category_id ON book (category_id);
 
 -- Индекс для сортировки по названию (используется в п.7)
 CREATE INDEX IF NOT EXISTS idx_book_title ON book (title);
+
+-- Инициализация version для строк, созданных до добавления @Version (п.11)
+UPDATE book SET version = 0 WHERE version IS NULL;
