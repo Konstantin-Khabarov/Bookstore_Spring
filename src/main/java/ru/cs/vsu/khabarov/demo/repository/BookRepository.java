@@ -13,7 +13,6 @@ import java.util.Optional;
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
 
-    // Полнотекстовый поиск через PostgreSQL tsvector (использует GIN-индекс)
     @Query(value = """
             SELECT * FROM book
             WHERE to_tsvector('simple', coalesce(title,'') || ' ' || coalesce(description,''))
@@ -29,16 +28,14 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     List<Book> findByPriceBetween(Double minPrice, Double maxPrice);
 
-    // Пессимистичная блокировка: SELECT ... FOR UPDATE (п.11)
+    // требует активной транзакции, иначе блокировка не удержится до коммита
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT b FROM Book b WHERE b.id = :id")
     Optional<Book> findByIdForUpdate(@Param("id") Long id);
 
-    // Выборка с сортировкой по названию (п.7)
     @Query(value = "SELECT * FROM book ORDER BY title LIMIT :limit", nativeQuery = true)
     List<Book> findAllOrderByTitle(@Param("limit") int limit);
 
-    // JOIN с таблицей category (п.7)
     @Query(value = """
             SELECT b.id AS bookId, b.title, b.author, b.price, c.name AS categoryName
             FROM book b
@@ -49,7 +46,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Object[]> findBooksWithCategoryRaw(@Param("categoryId") Long categoryId,
                                             @Param("limit") int limit);
 
-    // Агрегация: статистика по категориям (п.7)
     @Query(value = """
             SELECT b.category_id        AS categoryId,
                    COUNT(*)             AS bookCount,

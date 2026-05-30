@@ -27,8 +27,6 @@ public class QueryPlanController {
     @PersistenceContext
     private EntityManager em;
 
-    // ── 1. Выборка по id ──────────────────────────────────────────────────────
-
     @GetMapping("/by-id")
     @Operation(summary = "Выборка по id — данные")
     public ResponseEntity<Book> byId(@RequestParam(defaultValue = "1") Long id) {
@@ -43,8 +41,6 @@ public class QueryPlanController {
         return explain("SELECT * FROM book WHERE id = " + id);
     }
 
-    // ── 2. Выборка по полю (category_id) ─────────────────────────────────────
-
     @GetMapping("/by-field")
     @Operation(summary = "Выборка по полю category_id — данные (первые 20)")
     public List<Book> byField(@RequestParam(defaultValue = "1") Long categoryId) {
@@ -58,8 +54,6 @@ public class QueryPlanController {
         return explain("SELECT * FROM book WHERE category_id = " + categoryId);
     }
 
-    // ── 3. Выборка с сортировкой ──────────────────────────────────────────────
-
     @GetMapping("/sorted")
     @Operation(summary = "Выборка с сортировкой по title — данные")
     public List<Book> sorted(@RequestParam(defaultValue = "20") int limit) {
@@ -72,8 +66,6 @@ public class QueryPlanController {
     public List<String> sortedExplain(@RequestParam(defaultValue = "20") int limit) {
         return explain("SELECT * FROM book ORDER BY title LIMIT " + limit);
     }
-
-    // ── 4. Выборка с JOIN ─────────────────────────────────────────────────────
 
     @GetMapping("/join")
     @Operation(summary = "Выборка с JOIN (book + category) — данные")
@@ -100,8 +92,6 @@ public class QueryPlanController {
                 WHERE b.category_id = %d
                 """.formatted(categoryId));
     }
-
-    // ── 5. Выборка с агрегацией ───────────────────────────────────────────────
 
     @GetMapping("/aggregate")
     @Operation(summary = "Агрегация: статистика по категориям — данные")
@@ -130,8 +120,6 @@ public class QueryPlanController {
                 ORDER BY book_count DESC
                 """);
     }
-
-    // ── Вспомогательный метод: запуск EXPLAIN ANALYZE ─────────────────────────
 
     @SuppressWarnings("unchecked")
     private List<String> explain(String sql) {

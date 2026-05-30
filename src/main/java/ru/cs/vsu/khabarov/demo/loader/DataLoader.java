@@ -12,10 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Запускать как отдельный main-класс в IntelliJ.
- * Приложение должно быть запущено на localhost:8081.
- */
+
 public class DataLoader {
 
     static final String BASE_URL   = "http://localhost:8081";
@@ -34,14 +31,12 @@ public class DataLoader {
     };
 
     public static void main(String[] args) {
-        // RestClient с базовым URL — Jackson подхватывается автоматически
         RestClient restClient = RestClient.builder()
                 .baseUrl(BASE_URL)
                 .build();
 
         System.out.println("=== Пункт 6: Заполнение БД через REST (Spring RestClient) ===\n");
 
-        // Однопоточная загрузка
         System.out.println("--- Однопоточная загрузка (" + TOTAL_RECORDS + " записей) ---");
         long t1 = System.currentTimeMillis();
         loadSingleThreaded(restClient, TOTAL_RECORDS, BATCH_SIZE);
@@ -50,7 +45,6 @@ public class DataLoader {
         System.out.printf("Время: %d мс | Скорость: %.0f записей/сек%n%n",
                 singleTime, TOTAL_RECORDS * 1000.0 / singleTime);
 
-        // Многопоточная загрузка
         int threads = Runtime.getRuntime().availableProcessors();
         System.out.println("--- Многопоточная загрузка (" + TOTAL_RECORDS + " записей, " + threads + " потоков) ---");
         long t3 = System.currentTimeMillis();
@@ -60,8 +54,6 @@ public class DataLoader {
         System.out.printf("Время: %d мс | Скорость: %.0f записей/сек%n", multiTime, TOTAL_RECORDS * 1000.0 / multiTime);
         System.out.printf("Ускорение: %.1fx%n", (double) singleTime / multiTime);
     }
-
-    // ── Однопоточная загрузка ──────────────────────────────────────────────
 
     static void loadSingleThreaded(RestClient restClient, int total, int batchSize) {
         Random rnd = new Random(42);
@@ -76,8 +68,6 @@ public class DataLoader {
         }
     }
 
-    // ── Многопоточная загрузка ─────────────────────────────────────────────
-
     static void loadMultiThreaded(int total, int batchSize, int threadCount) {
         int batches = total / batchSize;
         AtomicInteger done = new AtomicInteger(0);
@@ -87,7 +77,7 @@ public class DataLoader {
         for (int i = 0; i < batches; i++) {
             final int batchIndex = i;
             futures.add(pool.submit(() -> {
-                // каждый поток создаёт свой RestClient
+                // RestClient не потокобезопасен при параллельном использовании одного экземпляра
                 RestClient client = RestClient.builder().baseUrl(BASE_URL).build();
                 List<Map<String, Object>> batch = generateBatch(batchIndex * batchSize, batchSize, new Random());
                 sendBatch(client, batch);
@@ -106,8 +96,6 @@ public class DataLoader {
         pool.shutdown();
     }
 
-    // ── Генерация батча ────────────────────────────────────────────────────
-
     static List<Map<String, Object>> generateBatch(int offset, int size, Random rnd) {
         List<Map<String, Object>> batch = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
@@ -125,14 +113,12 @@ public class DataLoader {
         return batch;
     }
 
-    // ── Отправка батча через RestClient ───────────────────────────────────
-
     static void sendBatch(RestClient restClient, List<Map<String, Object>> batch) {
         restClient.post()
                 .uri("/api/books/bulk")
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .body(batch)           // Jackson сериализует автоматически
+                .body(batch)
                 .retrieve()
-                .toBodilessEntity();   // нам ответ не нужен, только статус
+                .toBodilessEntity();
     }
 }

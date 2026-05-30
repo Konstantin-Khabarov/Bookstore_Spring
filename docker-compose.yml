@@ -20,9 +20,6 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      # PLAINTEXT — внутри Docker (контейнер→контейнер)
-      # EXTERNAL  — снаружи Docker (Spring на хосте → Kafka)
-      # CONTROLLER — служебный, только для KRaft-выборов
       KAFKA_LISTENERS: PLAINTEXT://:29092,EXTERNAL://:9092,CONTROLLER://:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT

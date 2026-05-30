@@ -23,8 +23,6 @@ public class LockDemoService {
     @Autowired
     private TransactionTemplate transactionTemplate;
 
-    // ── Оптимистичная блокировка (@Version) ──────────────────────────────────
-
     @Transactional
     public void optimisticUpdate(Long bookId, double newPrice) {
         Book book = bookRepository.findById(bookId)
@@ -81,11 +79,7 @@ public class LockDemoService {
                 finalBook.getPrice(), finalBook.getVersion(), log);
     }
 
-    // ── Пессимистичная блокировка (SELECT FOR UPDATE) ────────────────────────
-
     public void pessimisticUpdate(Long bookId, double newPrice) {
-        // TransactionTemplate явно открывает транзакцию в текущем потоке,
-        // чтобы @Lock(PESSIMISTIC_WRITE) мог удержать блокировку до коммита
         transactionTemplate.execute(status -> {
             Book book = bookRepository.findByIdForUpdate(bookId)
                     .orElseThrow(() -> new IllegalArgumentException("Книга не найдена: " + bookId));
@@ -130,8 +124,6 @@ public class LockDemoService {
                 success.get(), 0, threadCount - success.get(),
                 finalBook.getPrice(), finalBook.getVersion(), log);
     }
-
-    // ── DTO результата ────────────────────────────────────────────────────────
 
     public record DemoResult(
             String strategy,

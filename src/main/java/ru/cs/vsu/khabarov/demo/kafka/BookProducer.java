@@ -45,7 +45,7 @@ public class BookProducer {
     }
 
     private void dispatch(BookEvent event) {
-        // Ключ сообщения — bookId, Kafka распределит по партициям детерминированно
+        // одна книга всегда попадает в одну партицию — удобно для упорядоченной обработки
         String key = String.valueOf(event.getBookId());
         CompletableFuture<SendResult<String, BookEvent>> future =
                 kafkaTemplate.send(TOPIC, key, event);
